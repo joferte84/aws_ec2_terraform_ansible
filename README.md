@@ -2,6 +2,8 @@
 
 Este repositorio contiene la automatización del despliegue y configuración de instancias EC2 en AWS utilizando **Terraform** para la infraestructura y **Ansible** para la configuración de las instancias. Además, incluye plantillas para el servidor web (PHP) que serán gestionadas por Ansible.
 
+![LAMP Stack Desplegada con Ansible](images/ansible.png)
+
 ## Tabla de Contenidos
 
 - [Requisitos](#requisitos)
@@ -83,7 +85,7 @@ Recuerda que, antes de ejecutar cualquier comando de Terraform, debes haber expo
 
 ## Configurar el inventario de Ansible:
 
-El inventario dinámico está definido en `inventory.tf.tpl` y será generado automáticamente por Terraform. Asegúrate de que las instancias EC2 estén correctamente incluidas en el inventario.
+El inventario dinámico está definido en `inventory.tftpl` y será generado automáticamente por Terraform. Asegúrate de que las instancias EC2 estén correctamente incluidas en el inventario.
 
 ## Uso
 
