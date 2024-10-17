@@ -2,30 +2,143 @@
 - hosts: aws_ec2
   become: yes
   vars:
-    custom_message: "¡Bienvenido a mi servidor web personalizado con Ansible!"
+    mysql_root_password: "segura123"
+    app_db_name: "myapp"
+    app_db_user: "myappuser"
+    app_db_password: "apppass123"
+    doc_root: "/var/www/html"
+
   tasks:
-    - name: Update apt cache and install Nginx
+    - name: Update apt cache
       apt:
-        name: nginx
-        state: latest
         update_cache: yes
+
+    - name: Install required packages
+      apt:
+        pkg:
+          - apache2
+          - mysql-server
+          - php
+          - php-mysql
+          - libapache2-mod-php
+          - net-tools
+          - python3-pymysql
+        state: present
+
+    - name: Check if port 80 is in use
+      shell: ss -tuln | grep :80
+      register: port_80_status
+      ignore_errors: yes
+
+    - name: Display port 80 status
+      debug:
+        var: port_80_status.stdout_lines
+
+    - name: Stop the service using port 80 (if any)
+      shell: fuser -k 80/tcp
+      when: port_80_status.stdout != ""
+      ignore_errors: yes
+
+    - name: Start and enable Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+      register: apache_start_result
+      ignore_errors: yes
+
+    - name: Check Apache2 status
+      command: systemctl status apache2
+      register: apache_status
+      ignore_errors: yes
+
+    - name: Display Apache2 status
+      debug:
+        var: apache_status.stdout_lines
+
+    - name: Check Apache2 logs
+      command: tail -n 50 /var/log/apache2/error.log
+      register: apache_logs
+      ignore_errors: yes
+
+    - name: Display Apache2 logs
+      debug:
+        var: apache_logs.stdout_lines
+
+    - name: Start and enable MySQL service
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Remove anonymous MySQL users
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Remove MySQL test database
+      mysql_db:
+        name: test
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Create MySQL database
+      mysql_db:
+        name: "{{ app_db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Create MySQL user
+      mysql_user:
+        name: "{{ app_db_user }}"
+        password: "{{ app_db_password }}"
+        priv: "{{ app_db_name }}.*:ALL"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
     - name: Allow all access to tcp port 80
       ufw:
         rule: allow
         port: '80'
         proto: tcp
-    - name: Create custom index.html
+
+    - name: Create custom info.php
+      copy:
+        content: |
+          <?php
+          phpinfo();
+          ?>
+        dest: "{{ doc_root }}/info.php"
+
+    - name: Create custom index.php
       template:
-        src: custom_index.html.j2
-        dest: /var/www/html/index.html
-      notify: Restart Nginx
-    - name: Start nginx
-      service:
-        name: nginx
-        state: started
-        enabled: yes
+        src: index.php.j2
+        dest: "{{ doc_root }}/index.php"
+
   handlers:
-    - name: Restart Nginx
+    - name: Restart Apache
       service:
-        name: nginx
+        name: apache2
         state: restarted
