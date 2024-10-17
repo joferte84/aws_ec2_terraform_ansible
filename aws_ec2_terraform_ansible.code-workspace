@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../Desktop/aws_ec2_terraform_ansible/aws_ec2_terraform_ansible-main/.terraform"
+		},
+		{
+			"path": "../../../Desktop/aws_ec2_terraform_ansible/aws_ec2_terraform_ansible-main/ansible"
+		},
+		{
+			"path": "../../../Desktop/aws_ec2_terraform_ansible/aws_ec2_terraform_ansible-main/.ssh"
+		}
+	],
+	"settings": {}
+}
