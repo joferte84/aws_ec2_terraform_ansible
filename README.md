@@ -1,6 +1,6 @@
 # AWS EC2 Terraform Ansible
 
-Este repositorio contiene la automatización del despliegue y configuración de instancias EC2 en AWS utilizando **Terraform** para la infraestructura y **Ansible** para la configuración de las instancias. Además, incluye plantillas para el servidor web (PHP) que serán gestionadas por Ansible.
+Este repositorio automatiza el despliegue y configuración de instancias EC2 en AWS utilizando Terraform para la provisión de infraestructura y Ansible para la configuración del software en las instancias. La configuración incluye un stack LAMP (Linux, Apache, MySQL, PHP), permitiendo la instalación y configuración automática de un servidor web y base de datos. Además, se utilizan plantillas personalizadas para configurar el servidor web, incluidas las plantillas PHP para la página principal y archivos de verificación del servidor. Todo el proceso está completamente automatizado, lo que permite una implementación rápida y eficiente de servidores listos para producción.
 
 ![LAMP Stack Desplegada con Ansible](images/ansible.png)
 
@@ -12,8 +12,7 @@ Este repositorio contiene la automatización del despliegue y configuración de 
 - [Exportar credenciales de AWS](#exportar-credenciales-de-aws)
 - [Uso](#uso)
 - [Variables](#variables)
-- [Playbooks de Ansible](#playbooks-de-ansible)
-- [Contribuciones](#contribuciones)
+- [Playbook de Ansible](#playbook-de-ansible)
 
 ## Requisitos
 
@@ -79,9 +78,10 @@ Es importante mantener estas credenciales seguras y no compartirlas públicament
 
 Edita el archivo `variables.tf` para definir tus configuraciones personalizadas como la región de AWS, el tipo de instancia EC2, la clave SSH, etc.
 
-### Nota importante:
+> ### ⚠️ **Nota importante:**
+> 
+> Recuerda que, antes de ejecutar cualquier comando de Terraform, debes haber exportado las credenciales de AWS (`AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`). Es recomendable no incluir estas credenciales directamente en los archivos de configuración por motivos de seguridad. En su lugar, utiliza variables de entorno o un archivo seguro de configuración como `.env` para manejarlas.
 
-Recuerda que, antes de ejecutar cualquier comando de Terraform, debes haber exportado las credenciales de AWS (`AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`). Es recomendable no incluir estas credenciales directamente en los archivos de configuración por motivos de seguridad. En su lugar, utiliza variables de entorno o un archivo seguro de configuración como `.env` para manejarlas.
 
 ## Configurar el inventario de Ansible:
 
@@ -119,15 +119,28 @@ Las principales variables definidas en `variables.tf` incluyen:
 
 Puedes agregar o modificar variables según tus necesidades.
 
-## Playbooks de Ansible
+## Playbook de Ansible
 
-El archivo `playbook.yml` contiene las tareas que Ansible ejecutará en las instancias EC2. Entre las tareas típicas que puedes realizar se incluyen:
+El `playbook.yml` realiza las siguientes tareas para configurar el servidor con Apache, MySQL y PHP (LAMP stack):
 
-- Instalación de paquetes.
-- Configuración de servicios.
-- Despliegue de aplicaciones.
+- Actualiza la caché de paquetes con `apt`.
+- Instala los paquetes necesarios: Apache2, MySQL, PHP y otros módulos necesarios.
+- Verifica si el puerto 80 está en uso y mata cualquier proceso que esté ocupando el puerto antes de iniciar Apache.
+- Inicia y habilita el servicio de Apache.
+- Verifica los logs y el estado del servicio Apache.
+- Inicia y habilita el servicio MySQL.
+- Configura la contraseña de root para MySQL y elimina usuarios anónimos y la base de datos de prueba.
+- Crea la base de datos y el usuario de la aplicación, otorgando los permisos necesarios.
+- Habilita el acceso a través del puerto 80 utilizando `ufw`.
+- Crea un archivo `info.php` para verificar la instalación de PHP.
+- Utiliza una plantilla Jinja2 para crear un archivo `index.php` personalizado.
 
-## Contribuciones
+## Variables
 
-Las contribuciones son bienvenidas. Siéntete libre de abrir un issue o enviar un pull request con mejoras o correcciones.
+Las principales variables definidas en `variables.tf` incluyen:
 
+- `aws_region`: La región de AWS en la que se desplegarán las instancias.
+- `instance_type`: El tipo de instancia EC2 (por ejemplo, `t2.micro`).
+- `key_name`: El nombre de la clave SSH utilizada para acceder a las instancias.
+
+Puedes agregar o modificar variables según tus necesidades.
