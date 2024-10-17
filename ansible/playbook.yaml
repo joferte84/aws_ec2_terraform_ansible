@@ -1,0 +1,31 @@
+---
+- hosts: aws_ec2
+  become: yes
+  vars:
+    custom_message: "¡Bienvenido a mi servidor web personalizado con Ansible!"
+  tasks:
+    - name: Update apt cache and install Nginx
+      apt:
+        name: nginx
+        state: latest
+        update_cache: yes
+    - name: Allow all access to tcp port 80
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+    - name: Create custom index.html
+      template:
+        src: custom_index.html.j2
+        dest: /var/www/html/index.html
+      notify: Restart Nginx
+    - name: Start nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted

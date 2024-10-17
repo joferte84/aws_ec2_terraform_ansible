@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMP Stack Desplegada con Ansible</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+        .container:hover {
+            transform: scale(1.05);
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #333;
+        }
+        p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .failed {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡LAMP Stack Desplegada con Ansible!</h1>
+        <p>Este servidor fue configurado automáticamente.</p>
+        <p><strong>Hostname:</strong> <?php echo gethostname(); ?></p>
+        <p><strong>IP:</strong> <?php echo $_SERVER['SERVER_ADDR']; ?></p>
+        <p><strong>PHP Version:</strong> <?php echo phpversion(); ?></p>
+        <?php
+        $servername = "localhost";
+        $username = "{{ app_db_user }}";
+        $password = "{{ app_db_password }}";
+        $dbname = "{{ app_db_name }}";
+
+        // Create connection
+        $conn = new mysqli($servername, $username, $password, $dbname);
+
+        // Check connection
+        if ($conn->connect_error) {
+            echo "<p class='failed'>Database Connection: Failed</p>";
+        } else {
+            echo "<p class='success'>Database Connection: Successful</p>";
+        }
+        $conn->close();
+        ?>
+    </div>
+</body>
+</html>
